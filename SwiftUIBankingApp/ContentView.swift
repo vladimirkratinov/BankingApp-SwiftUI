@@ -12,7 +12,7 @@ struct ContentView: View {
         GeometryReader {
             let size = $0.size
             let safeArea = $0.safeAreaInsets
-            
+
             ScrollViewReader { proxy in
                 Home(proxy: proxy, size: size, safeArea: safeArea)
             }
