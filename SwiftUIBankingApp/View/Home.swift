@@ -82,7 +82,12 @@ struct Home: View {
                 /// Making it above All the Views
                 .zIndex(1000)
                 
-                Text("\(offset)")
+                /// Displaying Expenses
+                ExpensesView(expenses: myCards[activePage].expenses)
+                    .padding(.horizontal, 30)
+                    .padding(.top, 10)
+                
+//                Text("\(offset)")
             }
             .padding(.top, safeArea.top + 15)
             .padding(.bottom, safeArea.bottom + 15)
@@ -218,6 +223,35 @@ struct CardView: View {
                     }
             }
             .clipShape(RoundedRectangle(cornerRadius: 40, style: .continuous))
+        }
+    }
+}
+
+/// Expenses View
+struct ExpensesView: View {
+    var expenses: [Expense]
+    var body: some View {
+        VStack(spacing: 12) {
+            ForEach(expenses) { expense in
+                HStack(spacing: 12) {
+                    Image(expense.productIcon)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 55, height: 55)
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(expense.product)
+                        Text(expense.spendType)
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Text(expense.amountSpent)
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                }
+            }
         }
     }
 }
