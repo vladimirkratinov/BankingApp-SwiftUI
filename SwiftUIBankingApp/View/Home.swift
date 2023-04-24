@@ -91,6 +91,16 @@ struct Home: View {
             }
             .padding(.top, safeArea.top + 15)
             .padding(.bottom, safeArea.bottom + 15)
+            .id("CONTENT")
+        }
+        .overlay(content: {
+            ExpandedView()
+        })
+        .onChange(of: offset) { newValue in
+            if newValue == 0 && activePage == 0 {
+                /// Scrolling to the Top
+                proxy.scrollTo("CONTENT", anchor: .topLeading)
+            }
         }
     }
     
@@ -122,6 +132,66 @@ struct Home: View {
                 .fill(Color(.systemTeal).opacity(0.5))
         }
         .padding(.horizontal, 30)
+    }
+    
+    /// Expanded View
+    @ViewBuilder
+    func ExpandedView() -> some View {
+        VStack {
+            VStack(spacing: 30) {
+                HStack(spacing: 12) {
+                    Image(systemName: "creditcard.fill")
+                        .font(.title2)
+                    
+                    Text("Credit Card")
+                        .font(.title3.bold())
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                
+                HStack(spacing: 12) {
+                    Image(systemName: "building.columns.fill")
+                        .font(.title2)
+                    
+                    Text("Open an account")
+                        .font(.title3.bold())
+                    
+                    Image(systemName: "dollarsign.circle.fill")
+                        .font(.largeTitle)
+                        .foregroundColor(.white)
+                        .padding(.leading, 5)
+                    
+                    Image(systemName: "eurosign.circle.fill")
+                        .font(.largeTitle)
+                        .foregroundColor(.blue)
+                        .padding(.leading, -25)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .foregroundColor(.white)
+            .padding(25)
+            .background {
+                RoundedRectangle(cornerRadius: 25, style: .continuous)
+                    .fill(Color("ExpandButton"))
+            }
+            
+            Text("Your Card Number")
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundColor(.white.opacity(0.35))
+                .padding(.top, 10)
+            
+            /// Custom Number Pad
+            let values: [String] = [
+            "1", "2", "3", "4", "5", "6", "7", "8", "9", "scan", "0", "back"
+            ]
+            
+            GeometryReader {
+                let size = $0.size
+            }
+        }
+        .padding(.horizontal, 15)
+        .padding(.top, 15 + safeArea.top)
+        .padding(.bottom, 15 + safeArea.bottom)
     }
     
     /// Returns Index for Given Card
