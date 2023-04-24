@@ -14,6 +14,7 @@ struct Home: View {
     /// View Properties
     @State private var activePage: Int = 1
     @State private var myCards: [Card] = sampleCards
+    @State private var isManualAnimating: Bool = false
     /// Page Offset
     @State private var offset: CGFloat = 0
     var body: some View {
@@ -49,10 +50,13 @@ struct Home: View {
                             /// Page Tag (Index)
                             .tag(index(card))
                             .offsetX(activePage == index(card)) { rect in
-                                /// Calculating Entire Page Offset
-                                let minX = rect.minX
-                                let pageOffset = minX - (size.width * CGFloat(index(card)))
-                                offset = pageOffset
+                                if !isManualAnimating {
+                                    /// Calculating Entire Page Offset
+                                    /// The manual updates are not animating because the observer is always watching the Page Tab View updates; the solution is to just pause the observer when the manual update occurs.
+                                    let minX = rect.minX
+                                    let pageOffset = minX - (size.width * CGFloat(index(card)))
+                                    offset = pageOffset
+                                }
                             }
                         }
                     }
@@ -93,8 +97,16 @@ struct Home: View {
             .padding(.bottom, safeArea.bottom + 15)
             .id("CONTENT")
         }
+        .scrollDisabled(activePage == 0 || isManualAnimating)
         .overlay(content: {
-            ExpandedView()
+            /// Displaying Under Certain Condition
+            if reverseProgress(size) < 0.15 && activePage == 0 {
+                ExpandedView()
+                /// Adding Animation
+                    .scaleEffect(1 - reverseProgress(size))
+                    .opacity(1.0 - (reverseProgress(size) / 0.15))
+                    .transition(.identity)
+            }
         })
         .onChange(of: offset) { newValue in
             if newValue == 0 && activePage == 0 {
@@ -147,6 +159,26 @@ struct Home: View {
                         .font(.title3.bold())
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .overlay(alignment: .trailing) {
+                    Button {
+                        isManualAnimating = true
+                        /// Manual Closing
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            activePage = 1
+                            offset = -size.width
+                        }
+                        
+                        /// Resetting manual closing after the animation has been finished
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
+                            isManualAnimating = false
+                        }
+                        
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title)
+                            .foregroundColor(.white.opacity(0.5))
+                    }
+                }
                 
                 HStack(spacing: 12) {
                     Image(systemName: "building.columns.fill")
@@ -166,6 +198,7 @@ struct Home: View {
                         .padding(.leading, -25)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                
             }
             .foregroundColor(.white)
             .padding(25)
@@ -187,11 +220,54 @@ struct Home: View {
             
             GeometryReader {
                 let size = $0.size
+                
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 0) {
+                    ForEach(values, id: \.self) { item in
+                        Button {
+                            
+                        } label: {
+                            ZStack {
+                                if item == "scan" {
+                                    Image(systemName: "barcode.viewfinder")
+                                        .font(.title.bold())
+                                } else if item == "back" {
+                                    Image(systemName: "delete.backward")
+                                        .font(.title.bold())
+                                } else {
+                                    Text(item)
+                                        .font(.title.bold())
+                                }
+                            }
+                            .foregroundColor(.white)
+                            /// Since there are 3 Rows and 4 Columns
+                            .frame(width: size.width / 3, height: size.height / 4)
+                            .contentShape(Rectangle())
+                        }
+
+                    }
+                }
+                .padding(.horizontal, -15)
             }
+            
+            Button {
+                
+            } label: {
+                Text("Add Card")
+                    .font(.title2.bold())
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                    .background {
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .fill(Color("ExpandButton"))
+                    }
+            }
+
         }
         .padding(.horizontal, 15)
         .padding(.top, 15 + safeArea.top)
         .padding(.bottom, 15 + safeArea.bottom)
+        .environment(\.colorScheme, .dark)
     }
     
     /// Returns Index for Given Card
