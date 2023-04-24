@@ -83,7 +83,7 @@ struct Home: View {
                 .zIndex(1000)
                 
                 /// Displaying Expenses
-                ExpensesView(expenses: myCards[activePage].expenses)
+                ExpensesView(expenses: myCards[activePage == 0 ? 1 : activePage].expenses)
                     .padding(.horizontal, 30)
                     .padding(.top, 10)
                 
@@ -230,6 +230,8 @@ struct CardView: View {
 /// Expenses View
 struct ExpensesView: View {
     var expenses: [Expense]
+    /// View Properties
+    @State private var animateChange: Bool = true
     var body: some View {
         VStack(spacing: 12) {
             ForEach(expenses) { expense in
@@ -250,6 +252,19 @@ struct ExpensesView: View {
                     Text(expense.amountSpent)
                         .font(.title3)
                         .fontWeight(.semibold)
+                }
+            }
+        }
+        .opacity(animateChange ? 1 : 0)
+        .offset(y: animateChange ? 0 : 50)
+        .onChange(of: expenses) { newValue in
+            withAnimation(.easeInOut(duration: 0.1)) {
+                animateChange = false
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    animateChange = true
                 }
             }
         }
